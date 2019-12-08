@@ -1,0 +1,114 @@
+apiVersion: install.istio.io/v1alpha2
+kind: IstioControlPlane
+spec:
+  values:
+    certmanager:
+      enabled: false # don't need this castrated certmanager
+    gateways:
+      enabled: true
+      istio-ingressgateway:
+        enabled: true
+        sds:
+          enabled: true
+          resources:
+            requests:
+              cpu: 10m
+              memory: 100Mi
+            limits:
+              cpu: 100m
+              memory: 200Mi
+        autoscaleMin: 1
+        autoscaleMax: 2
+        resources:
+          requests:
+            cpu: 10m
+            memory: 40Mi
+          limits:
+            cpu: 200m
+            memory: 100Mi
+        type: ClusterIP
+        ports:
+          - port: 15020
+            targetPort: 15020
+            name: status-port
+          - port: 80
+            targetPort: 80
+            name: http2
+    global:
+      k8sIngress: { enabled: true }
+      proxy:
+        resources:
+          requests:
+            cpu: 10m
+            memory: 40Mi
+          limits:
+            cpu: 200m
+            memory: 150Mi
+      defaultResources:
+        requests:
+          cpu: 10m
+          memory: 40Mi
+      controlPlaneSecurityEnabled: true
+      disablePolicyChecks: true # don't need rateLimits and stuff right now
+    grafana:
+      enabled: true
+      security:
+        enabled: true
+        secretName: istio.grafana
+        usernameKey: username
+        passphraseKey: passphrase
+    kiali:
+      enabled: true
+      dashboard:
+        secretName: istio.kiali
+        grafanaURL: grafana.saksmt.dev
+    mixer:
+      policy:
+        enabled: false # don't need rateLimits and stuff right now
+        autoscaleMin: 1
+        autoscaleMax: 2
+        resources:
+          requests:
+            cpu: 10m
+            memory: 100Mi
+          limits:
+            cpu: 200m
+            memory: 200Mi
+      telemetry:
+        enabled: true
+        autoscaleMin: 1
+        autoscaleMax: 2
+        resources:
+          requests:
+            cpu: 50m
+            memory: 100Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+      adapters:
+        stdio: { enabled: true }
+    pilot:
+      traceSampling: 100.0
+      autoscaleMin: 1
+      autoscaleMax: 2
+      resources:
+        requests:
+          cpu: 10m
+          memory: 100Mi
+        limits:
+          cpu: 500m
+          memory: 512Mi
+    prometheus:
+      enabled: true
+    tracing:
+      enabled: true
+      provider: zipkin
+      zipkin:
+        javaOptsHeap: 300
+        resources:
+          requests:
+            cpu: 150m
+            memory: 500Mi
+          limits:
+            cpu: 300m
+            memory: 500Mi

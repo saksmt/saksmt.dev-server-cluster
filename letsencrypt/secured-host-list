@@ -1,0 +1,19 @@
+# *.smt.run
+smt.run
+kiali.smt.run
+grafana.smt.run
+tracing.smt.run
+prom.smt.run
+kube.smt.run
+registry.smt.run
+docker.smt.run
+
+# *.saksmt.dev
+saksmt.dev
+kiali.saksmt.dev
+grafana.saksmt.dev
+tracing.saksmt.dev
+prom.saksmt.dev
+kube.saksmt.dev
+registry.saksmt.dev
+docker.saksmt.dev

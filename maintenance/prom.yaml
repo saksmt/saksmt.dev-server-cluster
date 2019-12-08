@@ -1,0 +1,90 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: prom-gw
+  namespace: istio-system
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+    - port:
+        number: 80
+        name: http2
+        protocol: HTTP
+      hosts:
+        - prom.saksmt.dev
+        - prom.smt.run
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: prom-gw-virtualservice
+  namespace: istio-system
+spec:
+  hosts:
+  - prom.saksmt.dev
+  - prom.smt.run
+  gateways:
+  - prom-gw
+  http:
+    - route:
+      - destination:
+          host: secured-prom
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: secured-prom
+  namespace: istio-system
+spec:
+  selector:
+    app: secured-prom
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: secured-prom
+  namespace: istio-system
+  labels:
+    app: secured-prom
+spec:
+  selector:
+    matchLabels:
+      app: secured-prom
+  template:
+    metadata:
+      labels:
+        app: secured-prom
+    spec:
+      containers:
+        - image: quay.io/dtan4/nginx-basic-auth-proxy
+          imagePullPolicy: IfNotPresent
+          name: http-basic-proxy
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: 10m
+              memory: 40Mi
+            limits:
+              cpu: 100m
+              memory: 100Mi
+          env:
+            - name: BASIC_AUTH_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: istio.prom
+                  key: username
+            - name: BASIC_AUTH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: istio.prom
+                  key: passphrase
+            - name: PROXY_PASS
+              value: http://prometheus.istio-system.svc.cluster.local:9090
+            - name: SERVER_NAME
+              value: _

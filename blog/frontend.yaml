@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blog-frontend
+  namespace: blog
+  labels:
+    app: blog-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: blog-frontend
+  template:
+    metadata:
+      namespace: blog
+      labels:
+        app: blog-frontend
+    spec:
+      imagePullSecrets:
+        - name: local-docker-registry-secret
+      containers:
+        - name: blog-frontend
+          image: docker.smt.run/blog-frontend:latest
+          imagePullPolicy: Always # todo: do actual releases
+          ports:
+            - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: blog-frontend
+  namespace: blog
+spec:
+  selector:
+    app: blog-frontend
+  ports:
+    - name: http
+      port: 80

@@ -1,0 +1,101 @@
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: istio-system
+  name: ssl-termination-edge-proxy
+spec:
+  selector:
+    app: ssl-termination-edge-proxy
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+    - name: https
+      port: 443
+      targetPort: 443
+  type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: istio-system
+  name: ssl-termination-edge-proxy
+  labels:
+    app: ssl-termination-edge-proxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ssl-termination-edge-proxy
+  template:
+    metadata:
+      namespace: istio-system
+      labels:
+        app: ssl-termination-edge-proxy
+    spec:
+      volumes:
+        - name: config
+          configMap:
+            name: httpsify-config
+        - name: certs
+          persistentVolumeClaim:
+            claimName: ssl-certificates
+      containers:
+        - name: httpsify
+          image: alash3al/httpsify
+          args: [ '--redirect', '--expose-info=false', '--storage=/certs' ]
+          resources:
+            requests:
+              cpu: 10m
+              memory: 40Mi
+            limits:
+              cpu: 200m
+              memory: 512Mi
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+            - containerPort: 443
+          volumeMounts:
+            - mountPath: /.httpsify
+              name: config
+            - mountPath: /certs
+              name: certs
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ssl-certificates
+  namespace: istio-system
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 5Mi
+---
+# Istio loses X-Forwarded-Proto...
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: xff-trust-hops
+  namespace: istio-system
+spec:
+  workloadSelector:
+    labels:
+      istio: ingressgateway
+  configPatches:
+    - applyTo: NETWORK_FILTER
+      match:
+        context: ANY
+        listener:
+          filterChain:
+            filter:
+              name: "envoy.http_connection_manager"
+      patch:
+        operation: MERGE
+        value:
+          typed_config:
+            "@type": "type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager"
+            use_remote_address: true
+            xff_num_trusted_hops: 1

@@ -1,0 +1,90 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: tracing-gw
+  namespace: istio-system
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+    - port:
+        number: 80
+        name: http2
+        protocol: HTTP
+      hosts:
+        - tracing.saksmt.dev
+        - tracing.smt.run
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: tracing-gw-virtualservice
+  namespace: istio-system
+spec:
+  hosts:
+  - tracing.saksmt.dev
+  - tracing.smt.run
+  gateways:
+  - tracing-gw
+  http:
+    - route:
+      - destination:
+          host: secured-tracing
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: secured-tracing
+  namespace: istio-system
+spec:
+  selector:
+    app: secured-tracing
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: secured-tracing
+  namespace: istio-system
+  labels:
+    app: secured-tracing
+spec:
+  selector:
+    matchLabels:
+      app: secured-tracing
+  template:
+    metadata:
+      labels:
+        app: secured-tracing
+    spec:
+      containers:
+        - image: quay.io/dtan4/nginx-basic-auth-proxy
+          imagePullPolicy: IfNotPresent
+          name: http-basic-proxy
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: 10m
+              memory: 40Mi
+            limits:
+              cpu: 100m
+              memory: 100Mi
+          env:
+            - name: BASIC_AUTH_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: istio.tracing
+                  key: username
+            - name: BASIC_AUTH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: istio.tracing
+                  key: passphrase
+            - name: PROXY_PASS
+              value: http://tracing.istio-system.svc.cluster.local
+            - name: SERVER_NAME
+              value: _
