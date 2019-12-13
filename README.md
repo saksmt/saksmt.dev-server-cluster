@@ -1,7 +1,15 @@
 # saksmt.dev kubernetes cluster setup
 
+## Prerequisites
+
+ - [local-bin scripts](https://github.com/saksmt/local-bin)
+ - public domain name & IP
+
+## Installation
+
 0. Install k3s (WITHOUT traefik!)
 1. Deploy cluster with `./deploy-cluster`
+1. Adjust [host list](letsencrypt/secured-host-list) & domain names in deployments
 1. Expose & setup SSL termination `./ssl-hosts`
 1. Deploy maintenance services: `kubectl apply -f maintenance`
 1. Deploy nexus registry: `kubectl apply -f registry`
