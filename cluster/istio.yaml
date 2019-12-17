@@ -35,7 +35,7 @@ spec:
             targetPort: 80
             name: http2
     global:
-      k8sIngress: { enabled: true }
+      k8sIngress: { enabled: false }
       proxy:
         resources:
           requests:
@@ -65,8 +65,10 @@ spec:
     mixer:
       policy:
         enabled: false # don't need rateLimits and stuff right now
+        replicaCount: 1
+        autoscaleEnabled: false
         autoscaleMin: 1
-        autoscaleMax: 2
+        autoscaleMax: 1
         resources:
           requests:
             cpu: 10m
@@ -89,6 +91,7 @@ spec:
         stdio: { enabled: true }
     pilot:
       traceSampling: 100.0
+      autoscaleEnabled: false
       autoscaleMin: 1
       autoscaleMax: 2
       resources:
@@ -112,3 +115,33 @@ spec:
           limits:
             cpu: 300m
             memory: 500Mi
+
+  policy:
+    components:
+      policy:
+        values:
+          - mixer.policy.enabled = false
+        k8s:
+          replicas: 1
+          resources:
+            limits:
+              cpu: 100m
+              memory: 150Mi
+            requests:
+              cpu: 20m
+              memory: 40Mi
+  traffic_management:
+    components:
+      pilot:
+        values:
+          - pilot.traceSampling = 100.0
+          - pilot.autoscaleEnabled = false
+        k8s:
+          replicas: 1
+          resources:
+            limits:
+              cpu: 100m
+              memory: 150Mi
+            requests:
+              cpu: 20m
+              memory: 40Mi
