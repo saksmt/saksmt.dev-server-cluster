@@ -1,12 +1,12 @@
-# *.smt.run
-smt.run
-kiali.smt.run
-grafana.smt.run
-tracing.smt.run
-prom.smt.run
-kube.smt.run
-registry.smt.run
-docker.smt.run
+# # *.smt.run
+# smt.run
+# kiali.smt.run
+# grafana.smt.run
+# tracing.smt.run
+# prom.smt.run
+# kube.smt.run
+# registry.smt.run
+# docker.smt.run
 
 # *.saksmt.dev
 saksmt.dev
