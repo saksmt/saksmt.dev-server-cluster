@@ -196,7 +196,6 @@ spec:
         env:
           GOMAXPROCS: "6"
         replicaCount: 1
-        useMCP: true
     pilot:
       autoscaleEnabled: false
       autoscaleMax: 2
@@ -234,7 +233,7 @@ spec:
             memory: 400Mi
       provider: zipkin
       zipkin:
-        javaOptsHeap: 700
+        javaOptsHeap: 900
         maxSpans: 500000
         node:
           cpus: 1
@@ -242,7 +241,7 @@ spec:
         resources:
           limits:
             cpu: 300m
-            memory: 900Mi
+            memory: 1536Mi
           requests:
             cpu: 150m
-            memory: 900Mi
+            memory: 1536Mi
