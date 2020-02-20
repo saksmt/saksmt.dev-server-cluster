@@ -14,19 +14,6 @@ spec:
   defaultNamespace: istio-system
   gateways:
     components:
-      egressGateway:
-        enabled: true
-        k8s:
-          hpaSpec:
-            maxReplicas: 2
-            minReplicas: 1
-          resources:
-            limits:
-              cpu: 100m
-              memory: 200Mi
-            requests:
-              cpu: 10m
-              memory: 40Mi
       ingressGateway:
         enabled: true
         k8s:
