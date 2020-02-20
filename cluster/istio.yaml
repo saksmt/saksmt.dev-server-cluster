@@ -240,7 +240,7 @@ spec:
         probeStartupDelay: 300
         resources:
           limits:
-            cpu: 300m
+            cpu: 750m
             memory: 1536Mi
           requests:
             cpu: 150m
