@@ -52,11 +52,6 @@ spec:
         enabled: false
       citadel:
         enabled: true
-        k8s:
-          strategy:
-            rollingUpdate:
-              maxSurge: 100%
-              maxUnavailable: 25%
       nodeAgent:
         enabled: false
     enabled: true
@@ -74,8 +69,8 @@ spec:
           replicaCount: 1
           resources:
             limits:
-              cpu: 500m
-              memory: 512Mi
+              cpu: 1000m
+              memory: 1Gi
             requests:
               cpu: 50m
               memory: 100Mi
@@ -143,7 +138,6 @@ spec:
             memory: 40Mi
         tracer: zipkin
       proxy_init:
-        image: proxyv2
         resources:
           limits:
             cpu: 100m

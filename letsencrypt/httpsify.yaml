@@ -43,7 +43,7 @@ spec:
       containers:
         - name: httpsify
           image: alash3al/httpsify
-          args: [ '--redirect', '--expose-info=false', '--storage=/certs' ]
+          args: [ '--hosts=/.httpsify/hosts.json', '--certs=/certs', '--x-secured-by=false' ]
           resources:
             requests:
               cpu: 10m
