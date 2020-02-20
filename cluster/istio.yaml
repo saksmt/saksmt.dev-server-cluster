@@ -237,7 +237,7 @@ spec:
         maxSpans: 500000
         node:
           cpus: 1
-        probeStartupDelay: 200
+        probeStartupDelay: 300
         resources:
           limits:
             cpu: 300m
