@@ -153,8 +153,8 @@ spec:
             memory: 10Mi
       sds:
         enabled: false
-      tracer:
-        zipkin:
+      # tracer:
+        # zipkin:
           # address: "zipkin.saksmt.dev"
       trustDomain: cluster.local
       useMCP: true
