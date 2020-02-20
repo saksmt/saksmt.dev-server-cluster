@@ -1,147 +1,246 @@
-apiVersion: install.istio.io/v1alpha2
-kind: IstioControlPlane
 spec:
-  values:
-    certmanager:
-      enabled: false # don't need this castrated certmanager
-    gateways:
-      enabled: true
-      istio-ingressgateway:
+  configManagement:
+    components:
+      galley:
         enabled: true
-        sds:
-          enabled: true
+        k8s:
+          replicaCount: 1
+          resources:
+            requests:
+              cpu: 10m
+    enabled: true
+  defaultNamespace: istio-system
+  gateways:
+    components:
+      egressGateway:
+        enabled: true
+        k8s:
+          hpaSpec:
+            maxReplicas: 2
+            minReplicas: 1
+          resources:
+            limits:
+              cpu: 100m
+              memory: 200Mi
+            requests:
+              cpu: 10m
+              memory: 40Mi
+      ingressGateway:
+        enabled: true
+        k8s:
+          hpaSpec:
+            maxReplicas: 2
+            minReplicas: 1
+          resources:
+            limits:
+              cpu: 100m
+              memory: 200Mi
+            requests:
+              cpu: 10m
+              memory: 40Mi
+    enabled: true
+  policy:
+    components:
+      policy:
+        enabled: false
+    enabled: false
+  security:
+    components:
+      certManager:
+        enabled: false
+      citadel:
+        enabled: true
+        k8s:
+          strategy:
+            rollingUpdate:
+              maxSurge: 100%
+              maxUnavailable: 25%
+      nodeAgent:
+        enabled: false
+    enabled: true
+  telemetry:
+    components:
+      telemetry:
+        enabled: true
+        k8s:
+          env:
+          - name: GOMAXPROCS
+            value: "6"
+          hpaSpec:
+            maxReplicas: 1
+            minReplicas: 1
+          replicaCount: 1
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 50m
+              memory: 100Mi
+    enabled: true
+  trafficManagement:
+    components:
+      pilot:
+        enabled: true
+        k8s:
+          hpaSpec:
+            maxReplicas: 1
+            minReplicas: 1
           resources:
             requests:
               cpu: 10m
               memory: 100Mi
             limits:
+              cpu: 500m
+              memory: 512Mi
+    enabled: true
+  values:
+    clusterResources: true
+    galley:
+      enableAnalysis: false
+    gateways:
+      istio-ingressgateway:
+        autoscaleEnabled: false
+        sds:
+          enabled: false
+          image: node-agent-k8s
+          resources:
+            limits:
+              cpu: 200m
+              memory: 512Mi
+            requests:
               cpu: 100m
-              memory: 200Mi
-        autoscaleMin: 1
-        autoscaleMax: 2
-        resources:
-          requests:
-            cpu: 10m
-            memory: 40Mi
-          limits:
-            cpu: 200m
-            memory: 100Mi
+              memory: 128Mi
         type: ClusterIP
-        ports:
-          - port: 15020
-            targetPort: 15020
-            name: status-port
-          - port: 80
-            targetPort: 80
-            name: http2
     global:
-      k8sIngress: { enabled: false }
-      proxy:
-        resources:
-          requests:
-            cpu: 10m
-            memory: 40Mi
-          limits:
-            cpu: 200m
-            memory: 150Mi
+      controlPlaneSecurityEnabled: false
+      defaultNodeSelector: {}
+      defaultPodDisruptionBudget:
+        enabled: true
       defaultResources:
         requests:
           cpu: 10m
-          memory: 40Mi
-      controlPlaneSecurityEnabled: true
-      disablePolicyChecks: true # don't need rateLimits and stuff right now
+      disablePolicyChecks: true
+      enableTracing: true
+      imagePullPolicy: IfNotPresent
+      imagePullSecrets: []
+      k8sIngress:
+        enabled: false
+      mtls:
+        auto: false
+        enabled: false
+      proxy:
+        autoInject: enabled
+        concurrency: 2
+        resources:
+          limits:
+            cpu: 200m
+            memory: 150Mi
+          requests:
+            cpu: 10m
+            memory: 40Mi
+        tracer: zipkin
+      proxy_init:
+        image: proxyv2
+        resources:
+          limits:
+            cpu: 100m
+            memory: 50Mi
+          requests:
+            cpu: 10m
+            memory: 10Mi
+      sds:
+        enabled: false
+      tracer:
+        zipkin:
+          address: "zipkin.saksmt.dev"
+      trustDomain: cluster.local
+      useMCP: true
     grafana:
       enabled: true
+      replicaCount: 1
       security:
         enabled: true
         secretName: istio.grafana
-        usernameKey: username
         passphraseKey: passphrase
+        usernameKey: username
     kiali:
-      enabled: true
       dashboard:
+        grafanaURL: "grafana.saksmt.dev"
+        passphraseKey: passphrase
         secretName: istio.kiali
-        grafanaURL: grafana.saksmt.dev
-    mixer:
-      policy:
-        enabled: false # don't need rateLimits and stuff right now
-        replicaCount: 1
-        autoscaleEnabled: false
-        autoscaleMin: 1
-        autoscaleMax: 1
-        resources:
-          requests:
-            cpu: 10m
-            memory: 100Mi
-          limits:
-            cpu: 200m
-            memory: 200Mi
-      telemetry:
-        enabled: true
-        autoscaleMin: 1
-        autoscaleMax: 2
-        resources:
-          requests:
-            cpu: 50m
-            memory: 100Mi
-          limits:
-            cpu: 500m
-            memory: 512Mi
-      adapters:
-        stdio: { enabled: true }
-    pilot:
-      traceSampling: 100.0
-      autoscaleEnabled: false
-      autoscaleMin: 1
-      autoscaleMax: 2
-      resources:
-        requests:
-          cpu: 10m
-          memory: 100Mi
-        limits:
-          cpu: 500m
-          memory: 512Mi
-    prometheus:
+        usernameKey: username
       enabled: true
+      replicaCount: 1
+    mixer:
+      adapters:
+        kubernetesenv:
+          enabled: true
+        prometheus:
+          enabled: true
+          metricsExpiryDuration: 10h
+        stdio:
+          enabled: true
+          outputAsJson: false
+        useAdapterCRDs: false
+      policy:
+        adapters:
+          kubernetesenv:
+            enabled: true
+          useAdapterCRDs: false
+        autoscaleEnabled: false
+      telemetry:
+        autoscaleEnabled: false
+        env:
+          GOMAXPROCS: "6"
+        replicaCount: 1
+        useMCP: true
+    pilot:
+      autoscaleEnabled: false
+      autoscaleMax: 2
+      autoscaleMin: 1
+      policy:
+        enabled: false
+      replicaCount: 1
+      traceSampling: 1
+      useMCP: true
+    prometheus:
+      contextPath: /prometheus
+      enabled: true
+      replicaCount: 1
+      retention: 10h
+      scrapeInterval: 15s
+      security:
+        enabled: true
+    telemetry:
+      enabled: true
+      v1:
+        enabled: true
+      v2:
+        enabled: false
+        prometheus:
+          enabled: true
     tracing:
       enabled: true
+      opencensus:
+        resources:
+          limits:
+            cpu: "1"
+            memory: 1Gi
+          requests:
+            cpu: 200m
+            memory: 400Mi
       provider: zipkin
       zipkin:
-        javaOptsHeap: 300
+        javaOptsHeap: 700
+        maxSpans: 500000
+        node:
+          cpus: 1
+        probeStartupDelay: 200
         resources:
-          requests:
-            cpu: 150m
-            memory: 500Mi
           limits:
             cpu: 300m
-            memory: 500Mi
-
-  policy:
-    components:
-      policy:
-        values:
-          - mixer.policy.enabled = false
-        k8s:
-          replicas: 1
-          resources:
-            limits:
-              cpu: 100m
-              memory: 150Mi
-            requests:
-              cpu: 20m
-              memory: 40Mi
-  traffic_management:
-    components:
-      pilot:
-        values:
-          - pilot.traceSampling = 100.0
-          - pilot.autoscaleEnabled = false
-        k8s:
-          replicas: 1
-          resources:
-            limits:
-              cpu: 100m
-              memory: 150Mi
-            requests:
-              cpu: 20m
-              memory: 40Mi
+            memory: 900Mi
+          requests:
+            cpu: 150m
+            memory: 900Mi
