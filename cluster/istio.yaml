@@ -155,7 +155,7 @@ spec:
         enabled: false
       tracer:
         zipkin:
-          address: "zipkin.saksmt.dev"
+          # address: "zipkin.saksmt.dev"
       trustDomain: cluster.local
       useMCP: true
     grafana:
