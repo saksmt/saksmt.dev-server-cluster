@@ -37,7 +37,7 @@ fi
 
 function generateAndApplyConfig() {
     cat ${validatedHostListFile} \
-      | awk 'ORS=",\n" { print "  \""$1"\": [ \"'"http://${ingressHost}:80"'\" ]" }' \
+      | awk 'ORS=",\n" { print "  \""$1"\": [ \"'"${ingressHost}"'\" ]" }' \
       | sed '$s/,//' \
       | (echo '{' ; cat ; echo '}') \
       > ${hostConfigFile}
