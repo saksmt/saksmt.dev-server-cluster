@@ -20,7 +20,7 @@ spec:
         - name: local-docker-registry-secret
       containers:
         - name: blog-frontend
-          image: docker.smt.run/blog-frontend:latest
+          image: canister.io:5000/saksmt/blog-frontend:unstable
           imagePullPolicy: Always # todo: do actual releases
           ports:
             - containerPort: 80
