@@ -33,6 +33,8 @@ spec:
       labels:
         app: ssl-termination-edge-proxy
     spec:
+      nodeSelector:
+        kubernetes.io/hostname: master
       volumes:
         - name: config
           configMap:
