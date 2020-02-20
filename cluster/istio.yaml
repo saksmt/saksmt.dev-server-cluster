@@ -98,16 +98,12 @@ spec:
         type: ClusterIP
     global:
       controlPlaneSecurityEnabled: false
-      defaultNodeSelector: {}
-      defaultPodDisruptionBudget:
-        enabled: true
       defaultResources:
         requests:
           cpu: 10m
       disablePolicyChecks: true
       enableTracing: true
       imagePullPolicy: IfNotPresent
-      imagePullSecrets: []
       k8sIngress:
         enabled: false
       mtls:
@@ -137,8 +133,6 @@ spec:
       # tracer:
         # zipkin:
           # address: "zipkin.saksmt.dev"
-      trustDomain: cluster.local
-      useMCP: true
     grafana:
       enabled: true
       replicaCount: 1
@@ -185,7 +179,6 @@ spec:
         enabled: false
       replicaCount: 1
       traceSampling: 1
-      useMCP: true
     prometheus:
       contextPath: /prometheus
       enabled: true
