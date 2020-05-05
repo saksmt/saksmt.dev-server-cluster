@@ -1,0 +1,6 @@
+---
+- name: istio
+  hosts: localhost
+  become: yes
+  roles:
+    - istio

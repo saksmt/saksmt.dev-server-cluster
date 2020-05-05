@@ -1,0 +1,9 @@
+[all]
+children-of-bodom-node ansible_host=master.saksmt.dev
+rise-against-node ansible_host=slave.saksmt.dev
+
+[kube-master]
+children-of-bodom-node
+
+[kube-slave]
+rise-against-node

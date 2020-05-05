@@ -1,0 +1,55 @@
+---
+- name: install cli tools
+  package:
+    name:
+      - htop
+      - zsh
+      - curl
+      - git
+      - fd-find
+      - bat
+      # - ripgrep # conflict in 20.04 due to /usr/.crates.json originated in cargo: https://bugs.launchpad.net/ubuntu/+source/rust-bat/+bug/1868517
+      - fzf
+    state: present
+
+- name: add root-like user
+  user:
+    name: "{{ new_username }}"
+    non_unique: true
+    uid: 0
+    shell: /bin/zsh
+    system: true
+    create_home: no
+    home: /root
+
+- name: install ohmyzsh
+  shell:
+    cmd: CHSH=no RUNZSH=no sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+    creates: /root/.oh-my-zsh
+
+- name: install zsh plugins
+  lineinfile:
+    state: present
+    regexp: plugins\=.*?$
+    line: plugins=(apt git docker systemd fzf)
+    path: /root/.zshrc
+
+- name: set zsh theme
+  lineinfile:
+    state: present
+    regexp: "^ZSH_THEME=.*?$"
+    line: ZSH_THEME=gentoo
+    path: /root/.zshrc
+
+- name: fixup sshd config
+  block:
+    - name: disable password auth
+      lineinfile:
+        state: present
+        line: PasswordAuthentication no
+        path: "{{ sshd_config_path }}"
+    - name: allow login only by new user
+      lineinfile:
+        state: present
+        line: AllowUsers {{ new_username }}
+        path: "{{ sshd_config_path }}"

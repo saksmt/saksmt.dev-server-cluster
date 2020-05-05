@@ -1,0 +1,23 @@
+- name: check if already exposed
+  shell: '{{ kube }} get service ssl-termination-edge-proxy --namespace {{ istio.namespace | quote }} &> /dev/null || echo -n nope'
+  register: edge_proxy_deployed
+
+- name: generate edge-proxy config
+  set_fact:
+    edge_proxy_config:
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: "{{ istio.edge_proxy.config_map_name }}"
+        namespace: "{{ istio.namespace }}"
+      data:
+        hosts.json: "{{ dict(istio.edge_proxy.exposed_hosts | zip_longest([], fillvalue=[ istio.edge_proxy.ingress_host ])) | to_json }}"
+  when: edge_proxy_deployed.stdout == 'nope'
+
+- name: put edge-proxy config in kuber
+  shell: "echo {{ edge_proxy_config | to_yaml | quote }} | {{ kube }} apply -f -"
+  when: edge_proxy_deployed.stdout == 'nope'
+
+- name: deploy edge-proxy
+  shell: "{{ kube }} apply --namespace={{ istio.namespace }} -f {{ istio.edge_proxy.config_file }}"
+  when: edge_proxy_deployed.stdout == 'nope'

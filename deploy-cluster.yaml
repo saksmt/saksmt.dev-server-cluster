@@ -1,0 +1,28 @@
+---
+- name: prepare
+  hosts: all
+  tasks:
+    - name: load defaults
+      include_vars:
+        file: roles/kubernetes/defaults/main.yaml
+    - name: download k3s on nodes
+      get_url:
+        url: https://get.k3s.io
+        dest: "{{ k3s_installer }}"
+        mode: '755'
+
+- name: verify there is only single master
+  hosts: localhost
+  tasks:
+    - assert: 
+        that: groups['kube-master'] | length == 1
+
+- name: setup master
+  hosts: kube-master
+  roles:
+    - kubernetes/master
+
+- name: setup slaves
+  hosts: kube-slave
+  roles:
+    - kubernetes/slave

@@ -34,7 +34,7 @@ spec:
         app: ssl-termination-edge-proxy
     spec:
       nodeSelector:
-        kubernetes.io/hostname: master
+        node-role.kubernetes.io/master: "true"
       volumes:
         - name: config
           configMap:

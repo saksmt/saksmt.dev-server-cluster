@@ -1,0 +1,11 @@
+- name: expose grafana
+  shell: '{{ kube }} apply -f {{ istio.maintenance.expose_grafana_config_file }}'
+
+- name: expose kiali
+  shell: '{{ kube }} apply -f {{ istio.maintenance.expose_kiali_config_file }}'
+
+- name: expose prom
+  shell: '{{ kube }} apply -f {{ istio.maintenance.expose_prom_config_file }}'
+
+- name: expose tracing
+  shell: '{{ kube }} apply -f {{ istio.maintenance.expose_tracing_config_file }}'

@@ -1,0 +1,26 @@
+istio:
+  home: /opt/istio
+  bin_dir: '/opt/istio/bin'
+  binary: '/opt/istio/bin/istioctl'
+  namespace: istio-system
+  secrets_namespace: istio-secrets
+  cluster_config_file: '{{ playbook_dir }}/config/istio/istio-cluster.yaml'
+  manifests_dir: '{{ playbook_dir }}/artifacts/istio/manifests'
+  edge_proxy:
+    ingress_host: 'istio-ingressgateway.istio-system.svc.cluster.local'
+    config_file: '{{ playbook_dir }}/config/istio/edge-proxy.yaml'
+    config_map_name: httpsify-config
+    exposed_hosts:
+      - saksmt.dev
+      - smt.run
+      - kiali.saksmt.dev
+      - grafana.saksmt.dev
+      - tracing.saksmt.dev
+      - kube.saksmt.dev
+      - docker.saksmt.dev
+  maintenance:
+    expose_grafana_config_file: '{{ playbook_dir }}/config/istio/maintenance/grafana.yaml'
+    expose_kiali_config_file: '{{ playbook_dir }}/config/istio/maintenance/kiali.yaml'
+    expose_prom_config_file: '{{ playbook_dir }}/config/istio/maintenance/prom.yaml'
+    expose_tracing_config_file: '{{ playbook_dir }}/config/istio/maintenance/tracing.yaml'
+kube_config: '{{ playbook_dir }}/artifacts/kube-config.yaml'

@@ -1,0 +1,5 @@
+---
+- name: cli tools
+  hosts: all
+  roles:
+    - cli-accessible

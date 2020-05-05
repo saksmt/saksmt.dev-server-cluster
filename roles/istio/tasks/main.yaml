@@ -1,0 +1,4 @@
+- import_tasks: install-binaries.yaml
+- import_tasks: install-in-kuber.yaml
+- import_tasks: deploy-edge-proxy.yaml
+- import_tasks: expose-metrics.yaml

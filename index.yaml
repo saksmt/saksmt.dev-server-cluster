@@ -1,0 +1,4 @@
+---
+- import_playbook: prepare-node.yaml
+- import_playbook: deploy-cluster.yaml
+- import_playbook: istio.yaml

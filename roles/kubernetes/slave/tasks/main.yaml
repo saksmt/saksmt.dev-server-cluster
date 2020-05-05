@@ -1,0 +1,22 @@
+---
+- name: create k3s config dir
+  file:
+    path: /etc/k3s
+    state: directory
+
+- name: upload cluster token to slaves
+  copy:
+    src: '{{ artifacts_dir_v }}/cluster-token'
+    dest: /etc/k3s/cluster-token
+    mode: '644'
+
+- name: deploy k3s agent
+  command:
+    argv: [
+      "{{ k3s_installer }}",
+      agent,
+      '--node-name={{ node_name_v }}',
+      --token-file=/etc/k3s/cluster-token,
+      '--server=https://{{ hostvars[groups["kube-master"][0]].ansible_host }}:6443'
+    ]
+    creates: /var/lib/rancher/k3s/agent/kubelet.kubeconfig

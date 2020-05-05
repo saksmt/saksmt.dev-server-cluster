@@ -1,0 +1,4 @@
+---
+artifacts_dir_v: '{{ artifacts_dir | default(playbook_dir + "/artifacts") }}'
+node_name_v: '{{ node_name | default(inventory_hostname) }}'
+k3s_installer: '/usr/local/bin/k3s-installer'

@@ -1,0 +1,68 @@
+---
+- name: check if istio binary already exists
+  stat:
+    path: '{{ istio.binary }}'
+  register: istio_binary
+
+- name: ensure istio bin dir exists
+  file:
+    path: '{{ istio.bin_dir }}'
+    state: directory
+    mode: '755'
+  when: not istio_binary.stat.exists
+
+- name: download istio installer
+  get_url:
+    url: https://istio.io/downloadIstio
+    dest: '{{ istio.bin_dir }}/istio-installer'
+    mode: '755'
+  when: not istio_binary.stat.exists
+
+- block:
+    - name: create temp dir for istio download
+      tempfile:
+        state: directory
+      register: istio_tempdir
+      when: not istio_binary.stat.exists
+
+    - name: download istio
+      command:
+        chdir: '{{ istio_tempdir.path }}'
+        cmd: '{{ istio.bin_dir }}/istio-installer'
+      when: not istio_binary.stat.exists
+
+    - name: deduce downloaded istio root
+      find:
+        path: '{{ istio_tempdir.path }}'
+        file_type: directory
+        recurse: no
+      register: istio_downloaded
+      when: not istio_binary.stat.exists
+
+    - name: move istio to istio home
+      copy:
+        remote_src: yes
+        src: '{{ istio_downloaded.files[0].path }}/'
+        dest: '{{ istio.home }}'
+      when: not istio_binary.stat.exists
+  always:
+    - name: drop istio download tempdir
+      file:
+        path: '{{ istio_tempdir.path }}'
+        state: absent
+      when: not istio_binary.stat.exists and istio_tempdir.path is defined
+
+- name: set istioctl executable
+  file:
+    path: '{{ istio.binary }}'
+    mode: '755'
+  when: not istio_binary.stat.exists
+
+- name: verify installation
+  command:
+    argv:
+      - '{{ istio.binary }}'
+      - verify-install
+      - --kubeconfig
+      - "{{ kube_config }}"
+  when: not istio_binary.stat.exists

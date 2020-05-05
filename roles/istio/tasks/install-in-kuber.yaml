@@ -1,0 +1,55 @@
+# - name: check istio namespace
+  # command: 
+- name: create istio namespace
+  shell: "{{ kube }} get namespace {{ istio.namespace }} || {{ kube }} create namespace {{ istio.namespace }}"
+
+- name: tranfser grafana secret
+  import_tasks: transfer-secret.yaml
+  vars: 
+    transfer_secret:
+      name: istio.grafana
+      from: "{{ istio.secrets_namespace }}"
+      to: "{{ istio.namespace }}"
+    
+- name: tranfser kiali secret
+  import_tasks: transfer-secret.yaml
+  vars: 
+    transfer_secret:
+      name: istio.kiali
+      from: "{{ istio.secrets_namespace }}"
+      to: "{{ istio.namespace }}"
+
+- name: tranfser prom secret
+  import_tasks: transfer-secret.yaml
+  vars: 
+    transfer_secret:
+      name: istio.prom
+      from: "{{ istio.secrets_namespace }}"
+      to: "{{ istio.namespace }}"
+
+- name: tranfser tracing secret
+  import_tasks: transfer-secret.yaml
+  vars: 
+    transfer_secret:
+      name: istio.tracing
+      from: "{{ istio.secrets_namespace }}"
+      to: "{{ istio.namespace }}"
+
+- name: ensure istio manisfests dir exsits
+  file:
+    path: '{{ istio.manifests_dir }}'
+    state: directory
+
+- name: generate istio resources
+  shell: "{{ istioctl }} manifest generate -f {{ istio.cluster_config_file | quote }} > {{ istio.manifests_dir | quote }}/{{ istio_current_manifest_name }}"
+
+- name: save latest manifest name
+  shell: |
+    { \
+      [[ -f {{ istio.manifests_dir | quote }}/latest ]] && \
+        mv {{ istio.manifests_dir | quote }}/latest {{ istio.manifests_dir | quote }}/latest.prev || true
+    } \
+    && echo {{ istio_current_manifest_name | quote }} > {{ istio.manifests_dir | quote }}/latest
+
+- name: deploy istio cluster
+  shell: "{{ kube }} apply --namespace={{ istio.namespace }} -f {{ istio.manifests_dir | quote }}/{{ istio_current_manifest_name | quote }}"

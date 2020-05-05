@@ -1,0 +1,5 @@
+kube: 'kubectl --kubeconfig={{ kube_config | quote }}'
+kubea: [ 'kubectl', '--kubeconfig={{ kube_config | quote }}' ]
+istioctl: '{{ istio.binary }} --kubeconfig={{ kube_config | quote }}'
+istioctla: [ '{{ istio.binary }}', '--kubeconfig={{ kube_config | quote }}' ]
+istio_current_manifest_name: '{{ lookup("file", istio.cluster_config_file) | hash("sha1") }}.yaml'

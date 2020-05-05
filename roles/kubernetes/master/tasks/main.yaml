@@ -1,0 +1,35 @@
+---
+- name: deploy master
+  command:
+    argv: [
+      "{{ k3s_installer }}",
+      server,
+      --disable=traefik,
+      '--node-name={{ node_name_v }}'
+    ]
+    creates: /etc/rancher/k3s/k3s.yaml
+
+- name: prepare artifacts dir
+  delegate_to: localhost
+  file:
+    path: '{{ artifacts_dir_v }}'
+    state: directory
+
+- name: obtain secret
+  fetch:
+    src: /var/lib/rancher/k3s/server/token
+    dest: '{{ artifacts_dir_v }}/cluster-token'
+    flat: yes
+
+- name: obtain kube config
+  fetch:
+    src: /etc/rancher/k3s/k3s.yaml
+    dest: '{{ artifacts_dir_v }}/kube-config.yaml'
+    flat: yes
+
+- name: fixup kube address in kube config
+  delegate_to: localhost
+  replace:
+    path: '{{ artifacts_dir_v }}/kube-config.yaml'
+    regexp: '^(\s+)server:\s+https:\/\/127\.0\.0\.1'
+    replace: '\1server: https://{{ hostvars[groups["kube-master"][0]].ansible_host }}'
